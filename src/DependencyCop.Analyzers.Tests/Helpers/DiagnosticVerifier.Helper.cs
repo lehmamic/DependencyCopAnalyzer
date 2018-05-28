@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -11,7 +9,7 @@ using System.Linq;
 
 namespace DependencyCop.Analyzers.Tests.Helpers
 {
-    /// <summary>
+ /// <summary>
     /// Class for turning strings into documents and getting the diagnostics on them
     /// All methods are static
     /// </summary>
@@ -27,7 +25,7 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         internal static string VisualBasicDefaultExt = "vb";
         internal static string TestProjectName = "TestProject";
 
-        #region  Get Diagnostics
+        #region Get Diagnostics
 
         /// <summary>
         /// Given classes in the form of strings, their language, and an IDiagnosticAnalyzer to apply to it, return the diagnostics found in the string after converting it to a document.
@@ -35,12 +33,10 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// <param name="sources">Classes in the form of strings</param>
         /// <param name="language">The language the source classes are in</param>
         /// <param name="analyzer">The analyzer to be run on the sources</param>
-        /// <param name="parseOptions">The parse options for the compilation.</param>
-        /// <param name="compilationOptions">The compilation options for the compilation.</param>
         /// <returns>An IEnumerable of Diagnostics that surfaced in the source code, sorted by Location</returns>
-        private static Diagnostic[] GetSortedDiagnostics(string[] sources, string language, DiagnosticAnalyzer analyzer, ParseOptions parseOptions, CompilationOptions compilationOptions)
+        private static Diagnostic[] GetSortedDiagnostics(string[] sources, string language, DiagnosticAnalyzer analyzer)
         {
-            return GetSortedDiagnosticsFromDocuments(analyzer, GetDocuments(sources, language, parseOptions, compilationOptions));
+            return GetSortedDiagnosticsFromDocuments(analyzer, GetDocuments(sources, language));
         }
 
         /// <summary>
@@ -52,18 +48,18 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// <returns>An IEnumerable of Diagnostics that surfaced in the source code, sorted by Location</returns>
         protected static Diagnostic[] GetSortedDiagnosticsFromDocuments(DiagnosticAnalyzer analyzer, Document[] documents)
         {
-            HashSet<Project> projects = new HashSet<Project>();
-            foreach (Document document in documents)
+            var projects = new HashSet<Project>();
+            foreach (var document in documents)
             {
                 projects.Add(document.Project);
             }
 
-            List<Diagnostic> diagnostics = new List<Diagnostic>();
-            foreach (Project project in projects)
+            var diagnostics = new List<Diagnostic>();
+            foreach (var project in projects)
             {
-                CompilationWithAnalyzers compilationWithAnalyzers = project.GetCompilationAsync().Result.WithAnalyzers(ImmutableArray.Create(analyzer));
-                ImmutableArray<Diagnostic> diags = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result;
-                foreach (Diagnostic diag in diags)
+                var compilationWithAnalyzers = project.GetCompilationAsync().Result.WithAnalyzers(ImmutableArray.Create(analyzer));
+                var diags = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result;
+                foreach (var diag in diags)
                 {
                     if (diag.Location == Location.None || diag.Location.IsInMetadata)
                     {
@@ -73,8 +69,8 @@ namespace DependencyCop.Analyzers.Tests.Helpers
                     {
                         for (int i = 0; i < documents.Length; i++)
                         {
-                            Document document = documents[i];
-                            SyntaxTree tree = document.GetSyntaxTreeAsync().Result;
+                            var document = documents[i];
+                            var tree = document.GetSyntaxTreeAsync().Result;
                             if (tree == diag.Location.SourceTree)
                             {
                                 diagnostics.Add(diag);
@@ -84,7 +80,7 @@ namespace DependencyCop.Analyzers.Tests.Helpers
                 }
             }
 
-            Diagnostic[] results = SortDiagnostics(diagnostics);
+            var results = SortDiagnostics(diagnostics);
             diagnostics.Clear();
             return results;
         }
@@ -107,18 +103,16 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// </summary>
         /// <param name="sources">Classes in the form of strings</param>
         /// <param name="language">The language the source code is in</param>
-        /// <param name="parseOptions">The parse options for the compilation.</param>
-        /// <param name="compilationOptions">The compilation options for the compilation.</param>
         /// <returns>A Tuple containing the Documents produced from the sources and their TextSpans if relevant</returns>
-        private static Document[] GetDocuments(string[] sources, string language, ParseOptions parseOptions, CompilationOptions compilationOptions)
+        private static Document[] GetDocuments(string[] sources, string language)
         {
             if (language != LanguageNames.CSharp && language != LanguageNames.VisualBasic)
             {
                 throw new ArgumentException("Unsupported Language");
             }
 
-            Project project = CreateProject(sources, parseOptions, compilationOptions, language);
-            Document[] documents = project.Documents.ToArray();
+            var project = CreateProject(sources, language);
+            var documents = project.Documents.ToArray();
 
             if (sources.Length != documents.Length)
             {
@@ -133,12 +127,10 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// </summary>
         /// <param name="source">Classes in the form of a string</param>
         /// <param name="language">The language the source code is in</param>
-        /// <param name="parseOptions">The parse options for the compilation.</param>
-        /// <param name="compilationOptions">The compilation options for the compilation.</param>
         /// <returns>A Document created from the source string</returns>
-        protected static Document CreateDocument(string source, ParseOptions parseOptions, CompilationOptions compilationOptions, string language = LanguageNames.CSharp)
+        protected static Document CreateDocument(string source, string language = LanguageNames.CSharp)
         {
-            return CreateProject(new[] { source }, parseOptions, compilationOptions, language).Documents.First();
+            return CreateProject(new[] { source }, language).Documents.First();
         }
 
         /// <summary>
@@ -146,31 +138,27 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// </summary>
         /// <param name="sources">Classes in the form of strings</param>
         /// <param name="language">The language the source code is in</param>
-        /// <param name="parseOptions">The parse options for the compilation.</param>
-        /// <param name="compilationOptions">The compilation options for the compilation.</param>
         /// <returns>A Project created out of the Documents created from the source strings</returns>
-        private static Project CreateProject(string[] sources, ParseOptions parseOptions, CompilationOptions compilationOptions, string language = LanguageNames.CSharp)
+        private static Project CreateProject(string[] sources, string language = LanguageNames.CSharp)
         {
             string fileNamePrefix = DefaultFilePathPrefix;
             string fileExt = language == LanguageNames.CSharp ? CSharpDefaultFileExt : VisualBasicDefaultExt;
 
-            ProjectId projectId = ProjectId.CreateNewId(debugName: TestProjectName);
-            ProjectInfo projectInfo = ProjectInfo.Create(projectId, default(VersionStamp), TestProjectName,
-                TestProjectName, language, parseOptions: parseOptions, compilationOptions: compilationOptions);
+            var projectId = ProjectId.CreateNewId(debugName: TestProjectName);
 
-            Solution solution = new AdhocWorkspace()
+            var solution = new AdhocWorkspace()
                 .CurrentSolution
-                .AddProject(projectInfo)
+                .AddProject(projectId, TestProjectName, TestProjectName, language)
                 .AddMetadataReference(projectId, CorlibReference)
                 .AddMetadataReference(projectId, SystemCoreReference)
                 .AddMetadataReference(projectId, CSharpSymbolsReference)
                 .AddMetadataReference(projectId, CodeAnalysisReference);
 
             int count = 0;
-            foreach (string source in sources)
+            foreach (var source in sources)
             {
-                string newFileName = fileNamePrefix + count + "." + fileExt;
-                DocumentId documentId = DocumentId.CreateNewId(projectId, debugName: newFileName);
+                var newFileName = fileNamePrefix + count + "." + fileExt;
+                var documentId = DocumentId.CreateNewId(projectId, debugName: newFileName);
                 solution = solution.AddDocument(documentId, newFileName, SourceText.From(source));
                 count++;
             }

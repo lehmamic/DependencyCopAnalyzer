@@ -1,6 +1,5 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +17,10 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// <summary>
         /// Get the CSharp analyzer being tested - to be implemented in non-abstract class
         /// </summary>
-        protected virtual DiagnosticAnalyzer CSharpDiagnosticAnalyzer => null;
+        protected virtual DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        {
+            return null;
+        }
 
         /// <summary>
         /// Get the Visual Basic analyzer being tested (C#) - to be implemented in non-abstract class
@@ -39,7 +41,7 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// <param name="expected"> DiagnosticResults that should appear after the analyzer is run on the source</param>
         protected void VerifyCSharpDiagnostic(string source, params DiagnosticResult[] expected)
         {
-            VerifyDiagnostics(new[] { source }, LanguageNames.CSharp, CSharpDiagnosticAnalyzer, parseOptions: null, compilationOptions: null, expected: expected);
+            VerifyDiagnostics(new[] { source }, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), expected);
         }
 
         /// <summary>
@@ -50,7 +52,7 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the source</param>
         protected void VerifyBasicDiagnostic(string source, params DiagnosticResult[] expected)
         {
-            VerifyDiagnostics(new[] { source }, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), parseOptions: null, compilationOptions: null, expected: expected);
+            VerifyDiagnostics(new[] { source }, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), expected);
         }
 
         /// <summary>
@@ -61,7 +63,7 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
         protected void VerifyCSharpDiagnostic(string[] sources, params DiagnosticResult[] expected)
         {
-            VerifyDiagnostics(sources, LanguageNames.CSharp, CSharpDiagnosticAnalyzer, parseOptions: null, compilationOptions: null, expected: expected);
+            VerifyDiagnostics(sources, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), expected);
         }
 
         /// <summary>
@@ -72,7 +74,7 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
         protected void VerifyBasicDiagnostic(string[] sources, params DiagnosticResult[] expected)
         {
-            VerifyDiagnostics(sources, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), parseOptions: null, compilationOptions: null, expected: expected);
+            VerifyDiagnostics(sources, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), expected);
         }
 
         /// <summary>
@@ -85,75 +87,7 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
         private void VerifyDiagnostics(string[] sources, string language, DiagnosticAnalyzer analyzer, params DiagnosticResult[] expected)
         {
-            Diagnostic[] diagnostics = GetSortedDiagnostics(sources, language, analyzer, parseOptions: null, compilationOptions: null);
-            VerifyDiagnosticResults(diagnostics, analyzer, expected);
-        }
-
-        /// <summary>
-        /// Called to test a C# DiagnosticAnalyzer when applied on the single inputted string as a source
-        /// Note: input a DiagnosticResult for each Diagnostic expected
-        /// </summary>
-        /// <param name="source">A class in the form of a string to run the analyzer on</param>
-        /// <param name="expected"> DiagnosticResults that should appear after the analyzer is run on the source</param>
-        /// <param name="parseOptions">The parse options for the compilation.</param>
-        /// <param name="compilationOptions">The compilation options for the compilation.</param>
-        protected void VerifyCSharpDiagnostic(string source, ParseOptions parseOptions, CompilationOptions compilationOptions, params DiagnosticResult[] expected)
-        {
-            VerifyDiagnostics(new[] { source }, LanguageNames.CSharp, CSharpDiagnosticAnalyzer, parseOptions, compilationOptions, expected);
-        }
-
-        /// <summary>
-        /// Called to test a VB DiagnosticAnalyzer when applied on the single inputted string as a source
-        /// Note: input a DiagnosticResult for each Diagnostic expected
-        /// </summary>
-        /// <param name="source">A class in the form of a string to run the analyzer on</param>
-        /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the source</param>
-        /// <param name="parseOptions">The parse options for the compilation.</param>
-        /// <param name="compilationOptions">The compilation options for the compilation.</param>
-        protected void VerifyBasicDiagnostic(string source, ParseOptions parseOptions, CompilationOptions compilationOptions, params DiagnosticResult[] expected)
-        {
-            VerifyDiagnostics(new[] { source }, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), parseOptions, compilationOptions, expected);
-        }
-
-        /// <summary>
-        /// Called to test a C# DiagnosticAnalyzer when applied on the inputted strings as a source
-        /// Note: input a DiagnosticResult for each Diagnostic expected
-        /// </summary>
-        /// <param name="sources">An array of strings to create source documents from to run the analyzers on</param>
-        /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
-        /// <param name="parseOptions">The parse options for the compilation.</param>
-        /// <param name="compilationOptions">The compilation options for the compilation.</param>
-        protected void VerifyCSharpDiagnostic(string[] sources, ParseOptions parseOptions, CompilationOptions compilationOptions, params DiagnosticResult[] expected)
-        {
-            VerifyDiagnostics(sources, LanguageNames.CSharp, CSharpDiagnosticAnalyzer, parseOptions, compilationOptions, expected);
-        }
-
-        /// <summary>
-        /// Called to test a VB DiagnosticAnalyzer when applied on the inputted strings as a source
-        /// Note: input a DiagnosticResult for each Diagnostic expected
-        /// </summary>
-        /// <param name="sources">An array of strings to create source documents from to run the analyzers on</param>
-        /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
-        /// <param name="parseOptions">The parse options for the compilation.</param>
-        /// <param name="compilationOptions">The compilation options for the compilation.</param>
-        protected void VerifyBasicDiagnostic(string[] sources, ParseOptions parseOptions, CompilationOptions compilationOptions, params DiagnosticResult[] expected)
-        {
-            VerifyDiagnostics(sources, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), parseOptions, compilationOptions, expected);
-        }
-
-        /// <summary>
-        /// General method that gets a collection of actual diagnostics found in the source after the analyzer is run, 
-        /// then verifies each of them.
-        /// </summary>
-        /// <param name="sources">An array of strings to create source documents from to run the analyzers on</param>
-        /// <param name="language">The language of the classes represented by the source strings</param>
-        /// <param name="analyzer">The analyzer to be run on the source code</param>
-        /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
-        /// <param name="parseOptions">The parse options for the compilation.</param>
-        /// <param name="compilationOptions">The compilation options for the compilation.</param>
-        private void VerifyDiagnostics(string[] sources, string language, DiagnosticAnalyzer analyzer, ParseOptions parseOptions, CompilationOptions compilationOptions, params DiagnosticResult[] expected)
-        {
-            Diagnostic[] diagnostics = GetSortedDiagnostics(sources, language, analyzer, parseOptions, compilationOptions);
+            var diagnostics = GetSortedDiagnostics(sources, language, analyzer);
             VerifyDiagnosticResults(diagnostics, analyzer, expected);
         }
 
@@ -182,8 +116,8 @@ namespace DependencyCop.Analyzers.Tests.Helpers
 
             for (int i = 0; i < expectedResults.Length; i++)
             {
-                Diagnostic actual = actualResults.ElementAt(i);
-                DiagnosticResult expected = expectedResults[i];
+                var actual = actualResults.ElementAt(i);
+                var expected = expectedResults[i];
 
                 if (expected.Line == -1 && expected.Column == -1)
                 {
@@ -197,7 +131,7 @@ namespace DependencyCop.Analyzers.Tests.Helpers
                 else
                 {
                     VerifyDiagnosticLocation(analyzer, actual, actual.Location, expected.Locations.First());
-                    Location[] additionalLocations = actual.AdditionalLocations.ToArray();
+                    var additionalLocations = actual.AdditionalLocations.ToArray();
 
                     if (additionalLocations.Length != expected.Locations.Length - 1)
                     {
@@ -245,16 +179,16 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// <param name="expected">The DiagnosticResultLocation that should have been found</param>
         private static void VerifyDiagnosticLocation(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Location actual, DiagnosticResultLocation expected)
         {
-            FileLinePositionSpan actualSpan = actual.GetLineSpan();
+            var actualSpan = actual.GetLineSpan();
 
             Assert.True(actualSpan.Path == expected.Path || (actualSpan.Path != null && actualSpan.Path.Contains("Test0.") && expected.Path.Contains("Test.")),
                 string.Format("Expected diagnostic to be in file \"{0}\" was actually in file \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n",
                     expected.Path, actualSpan.Path, FormatDiagnostics(analyzer, diagnostic)));
 
-            Microsoft.CodeAnalysis.Text.LinePosition actualLinePosition = actualSpan.StartLinePosition;
+            var actualLinePosition = actualSpan.StartLinePosition;
 
             // Only check line position if there is an actual line in the real diagnostic
-            if (expected.Line > 0)
+            if (actualLinePosition.Line > 0)
             {
                 if (actualLinePosition.Line + 1 != expected.Line)
                 {
@@ -265,7 +199,7 @@ namespace DependencyCop.Analyzers.Tests.Helpers
             }
 
             // Only check column position if there is an actual column position in the real diagnostic
-            if (expected.Column > 0)
+            if (actualLinePosition.Character > 0)
             {
                 if (actualLinePosition.Character + 1 != expected.Column)
                 {
@@ -286,19 +220,19 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// <returns>The Diagnostics formatted as a string</returns>
         private static string FormatDiagnostics(DiagnosticAnalyzer analyzer, params Diagnostic[] diagnostics)
         {
-            StringBuilder builder = new StringBuilder();
+            var builder = new StringBuilder();
             for (int i = 0; i < diagnostics.Length; ++i)
             {
                 builder.AppendLine("// " + diagnostics[i].ToString());
 
-                System.Type analyzerType = analyzer.GetType();
-                System.Collections.Immutable.ImmutableArray<DiagnosticDescriptor> rules = analyzer.SupportedDiagnostics;
+                var analyzerType = analyzer.GetType();
+                var rules = analyzer.SupportedDiagnostics;
 
-                foreach (DiagnosticDescriptor rule in rules)
+                foreach (var rule in rules)
                 {
                     if (rule != null && rule.Id == diagnostics[i].Id)
                     {
-                        Location location = diagnostics[i].Location;
+                        var location = diagnostics[i].Location;
                         if (location == Location.None)
                         {
                             builder.AppendFormat("GetGlobalResult({0}.{1})", analyzerType.Name, rule.Id);
@@ -309,7 +243,7 @@ namespace DependencyCop.Analyzers.Tests.Helpers
                                 $"Test base does not currently handle diagnostics in metadata locations. Diagnostic in metadata: {diagnostics[i]}\r\n");
 
                             string resultMethodName = diagnostics[i].Location.SourceTree.FilePath.EndsWith(".cs") ? "GetCSharpResultAt" : "GetBasicResultAt";
-                            Microsoft.CodeAnalysis.Text.LinePosition linePosition = diagnostics[i].Location.GetLineSpan().StartLinePosition;
+                            var linePosition = diagnostics[i].Location.GetLineSpan().StartLinePosition;
 
                             builder.AppendFormat("{0}({1}, {2}, {3}.{4})",
                                 resultMethodName,
