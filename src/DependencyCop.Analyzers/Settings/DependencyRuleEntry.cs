@@ -1,6 +1,6 @@
 namespace DependencyCop.Analyzers.Settings
 {
-    public class DependencyRule
+    public class DependencyRuleEntry
     {
         public DependencyRuleType Type { get; set; }
 

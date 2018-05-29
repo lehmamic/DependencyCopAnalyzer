@@ -5,10 +5,10 @@ namespace DependencyCop.Analyzers.Settings
         public static DependencyCopSettings Default => new DependencyCopSettings
             {
                 Rules = new[] {
-                    new DependencyRule { Type = DependencyRuleType.Allow, From = "*", To="*" }
+                    new DependencyRuleEntry { Type = DependencyRuleType.Allow, From = "*", To="*" }
                 }
             };
 
-        public DependencyRule[] Rules { get; set; }
+        public DependencyRuleEntry[] Rules { get; set; }
     }
 }

@@ -43,8 +43,8 @@ namespace DependencyCop.Analyzers.Tests.Settings
             var expected = new DependencyCopSettings
             {
                 Rules = new[] {
-                    new DependencyRule { Type = DependencyRuleType.Allow, From = "*", To="*" },
-                    new DependencyRule { Type = DependencyRuleType.Deny, From = "fo.bar.*", To="camp.hack.*" },
+                    new DependencyRuleEntry { Type = DependencyRuleType.Allow, From = "*", To="*" },
+                    new DependencyRuleEntry { Type = DependencyRuleType.Deny, From = "fo.bar.*", To="camp.hack.*" },
                 }
             };
 
@@ -112,7 +112,7 @@ namespace DependencyCop.Analyzers.Tests.Settings
             var expected = new DependencyCopSettings
             {
                 Rules = new[] {
-                    new DependencyRule { Type = DependencyRuleType.Allow, From = "*", To="*" }
+                    new DependencyRuleEntry { Type = DependencyRuleType.Allow, From = "*", To="*" }
                 }
             };
 
