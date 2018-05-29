@@ -1,7 +1,9 @@
+using DependencyCop.Analyzers.Settings;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -34,9 +36,9 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// <param name="language">The language the source classes are in</param>
         /// <param name="analyzer">The analyzer to be run on the sources</param>
         /// <returns>An IEnumerable of Diagnostics that surfaced in the source code, sorted by Location</returns>
-        private static Diagnostic[] GetSortedDiagnostics(string[] sources, string language, DiagnosticAnalyzer analyzer)
+        private Diagnostic[] GetSortedDiagnostics(string[] sources, string language, DiagnosticAnalyzer analyzer)
         {
-            return GetSortedDiagnosticsFromDocuments(analyzer, GetDocuments(sources, language));
+            return GetSortedDiagnosticsFromDocuments(analyzer, this.GetDocuments(sources, language));
         }
 
         /// <summary>
@@ -104,14 +106,14 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// <param name="sources">Classes in the form of strings</param>
         /// <param name="language">The language the source code is in</param>
         /// <returns>A Tuple containing the Documents produced from the sources and their TextSpans if relevant</returns>
-        private static Document[] GetDocuments(string[] sources, string language)
+        private Document[] GetDocuments(string[] sources, string language)
         {
             if (language != LanguageNames.CSharp && language != LanguageNames.VisualBasic)
             {
                 throw new ArgumentException("Unsupported Language");
             }
 
-            var project = CreateProject(sources, language);
+            var project = this.CreateProject(sources, language);
             var documents = project.Documents.ToArray();
 
             if (sources.Length != documents.Length)
@@ -128,9 +130,9 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// <param name="source">Classes in the form of a string</param>
         /// <param name="language">The language the source code is in</param>
         /// <returns>A Document created from the source string</returns>
-        protected static Document CreateDocument(string source, string language = LanguageNames.CSharp)
+        protected Document CreateDocument(string source, string language = LanguageNames.CSharp)
         {
-            return CreateProject(new[] { source }, language).Documents.First();
+            return this.CreateProject(new[] { source }, language).Documents.First();
         }
 
         /// <summary>
@@ -139,7 +141,7 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// <param name="sources">Classes in the form of strings</param>
         /// <param name="language">The language the source code is in</param>
         /// <returns>A Project created out of the Documents created from the source strings</returns>
-        private static Project CreateProject(string[] sources, string language = LanguageNames.CSharp)
+        private Project CreateProject(string[] sources, string language = LanguageNames.CSharp)
         {
             string fileNamePrefix = DefaultFilePathPrefix;
             string fileExt = language == LanguageNames.CSharp ? CSharpDefaultFileExt : VisualBasicDefaultExt;
@@ -162,6 +164,20 @@ namespace DependencyCop.Analyzers.Tests.Helpers
                 solution = solution.AddDocument(documentId, newFileName, SourceText.From(source));
                 count++;
             }
+
+            var settings = this.GetSettings();
+
+            if (string.IsNullOrEmpty(settings))
+            {
+                settings = JsonConvert.SerializeObject(DependencyCopSettings.Default);
+            }
+
+            if (!string.IsNullOrEmpty(settings))
+            {
+                var documentId = DocumentId.CreateNewId(projectId);
+                solution = solution.AddAdditionalDocument(documentId, this.GetSettingsFileName(), settings);
+            }
+
             return solution.GetProject(projectId);
         }
         #endregion

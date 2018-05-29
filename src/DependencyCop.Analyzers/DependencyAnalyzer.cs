@@ -32,11 +32,9 @@ namespace DependencyCop.Analyzers
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
 
-            // TODO: Consider registering other actions that act on syntax instead of or in addition to symbols
+            // Consider registering other actions that act on syntax instead of or in addition to symbols
             // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Analyzer%20Actions%20Semantics.md for more information
-            context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.NamedType);
-            context.RegisterSymbolAction(AnalyzeDependencySymbol, SymbolKind.Field);
-            //context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.);
+            context.RegisterSymbolAction(AnalyzeFieldSymbol, SymbolKind.Field);
         }
 
         // private void AnalyzeNode(SyntaxNodeAnalysisContext context)
@@ -45,22 +43,22 @@ namespace DependencyCop.Analyzers
         //     Console.WriteLine(localDeclaration);
         // }
 
-        private static void AnalyzeSymbol(SymbolAnalysisContext context)
-        {
-            // TODO: Replace the following code with your own analysis, generating Diagnostic objects for any issues you find
-            var namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
+        // private static void AnalyzeSymbol(SymbolAnalysisContext context)
+        // {
+        //     // TODO: Replace the following code with your own analysis, generating Diagnostic objects for any issues you find
+        //     var namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
 
-            // Find just those named type symbols with names containing lowercase letters.
-            if (namedTypeSymbol.Name.ToCharArray().Any(char.IsLower))
-            {
-                // For all such symbols, produce a diagnostic.
-                var diagnostic = Diagnostic.Create(Rule, namedTypeSymbol.Locations[0], namedTypeSymbol.Name);
+        //     // Find just those named type symbols with names containing lowercase letters.
+        //     if (namedTypeSymbol.Name.ToCharArray().Any(char.IsLower))
+        //     {
+        //         // For all such symbols, produce a diagnostic.
+        //         var diagnostic = Diagnostic.Create(Rule, namedTypeSymbol.Locations[0], namedTypeSymbol.Name);
 
-                context.ReportDiagnostic(diagnostic);
-            }
-        }
+        //         context.ReportDiagnostic(diagnostic);
+        //     }
+        // }
 
-        private static void AnalyzeDependencySymbol(SymbolAnalysisContext context, DependencyCopSettings settings)
+        private static void AnalyzeFieldSymbol(SymbolAnalysisContext context, DependencyCopSettings settings)
         {
             Console.WriteLine(context.Symbol.Name);
         }

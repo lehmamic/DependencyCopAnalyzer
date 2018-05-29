@@ -1,3 +1,4 @@
+using DependencyCop.Analyzers.Settings;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -29,6 +30,17 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         {
             return null;
         }
+
+        protected virtual string GetSettings()
+        {
+            return null;
+        }
+
+        protected virtual string GetSettingsFileName()
+        {
+            return SettingsHelper.SettingsFileName;
+        }
+
         #endregion
 
         #region Verifier wrappers
@@ -41,7 +53,7 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// <param name="expected"> DiagnosticResults that should appear after the analyzer is run on the source</param>
         protected void VerifyCSharpDiagnostic(string source, params DiagnosticResult[] expected)
         {
-            VerifyDiagnostics(new[] { source }, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), expected);
+            this.VerifyDiagnostics(new[] { source }, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), expected);
         }
 
         /// <summary>
@@ -52,7 +64,7 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the source</param>
         protected void VerifyBasicDiagnostic(string source, params DiagnosticResult[] expected)
         {
-            VerifyDiagnostics(new[] { source }, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), expected);
+            this.VerifyDiagnostics(new[] { source }, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), expected);
         }
 
         /// <summary>
@@ -63,7 +75,7 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
         protected void VerifyCSharpDiagnostic(string[] sources, params DiagnosticResult[] expected)
         {
-            VerifyDiagnostics(sources, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), expected);
+            this.VerifyDiagnostics(sources, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), expected);
         }
 
         /// <summary>
@@ -74,7 +86,7 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
         protected void VerifyBasicDiagnostic(string[] sources, params DiagnosticResult[] expected)
         {
-            VerifyDiagnostics(sources, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), expected);
+            this.VerifyDiagnostics(sources, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), expected);
         }
 
         /// <summary>
@@ -87,7 +99,7 @@ namespace DependencyCop.Analyzers.Tests.Helpers
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
         private void VerifyDiagnostics(string[] sources, string language, DiagnosticAnalyzer analyzer, params DiagnosticResult[] expected)
         {
-            var diagnostics = GetSortedDiagnostics(sources, language, analyzer);
+            var diagnostics = this.GetSortedDiagnostics(sources, language, analyzer);
             VerifyDiagnosticResults(diagnostics, analyzer, expected);
         }
 
