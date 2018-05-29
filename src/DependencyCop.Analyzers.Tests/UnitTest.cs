@@ -48,6 +48,46 @@ namespace DependencyCop.Analyzers.Tests
 
             VerifyCSharpDiagnostic(test, expected);
         }
+
+        [Fact]
+        public void TestClassField()
+        {
+            var test = @"
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+    using System.Diagnostics;
+    using Test.Foo.Bar;
+
+    namespace Test.Foo.Bar
+    {
+        class TypeName
+        {   
+        }
+    }
+
+    namespace Test.Foo.Pilot
+    {
+        class Test
+        {
+            private TypeName x = new TypeName();
+        }
+    }";
+            var expected = new DiagnosticResult
+            {
+                Id = DependencyAnalyzer.DiagnosticId,
+                Message = String.Format("Type name '{0}' contains lowercase letters", "TypeName"),
+                Severity = DiagnosticSeverity.Warning,
+                Locations =
+                    new[] {
+                            new DiagnosticResultLocation("Test0.cs", 10, 15)
+                        }
+            };
+
+            VerifyCSharpDiagnostic(test, expected);
+        }
     //     [Fact]
     //     public void TestMethod2()
     //     {

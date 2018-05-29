@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using DependencyCop.Analyzers.Settings;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,7 +11,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace DependencyCop.Analyzers
 {
-
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class DependencyAnalyzer : DiagnosticAnalyzer
     {
@@ -29,10 +29,21 @@ namespace DependencyCop.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
+
             // TODO: Consider registering other actions that act on syntax instead of or in addition to symbols
             // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Analyzer%20Actions%20Semantics.md for more information
             context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.NamedType);
+            context.RegisterSymbolAction(AnalyzeDependencySymbol, SymbolKind.Field);
+            //context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.);
         }
+
+        // private void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        // {
+        //     var localDeclaration = (LocalDeclarationStatementSyntax)context.Node;
+        //     Console.WriteLine(localDeclaration);
+        // }
 
         private static void AnalyzeSymbol(SymbolAnalysisContext context)
         {
@@ -47,6 +58,11 @@ namespace DependencyCop.Analyzers
 
                 context.ReportDiagnostic(diagnostic);
             }
+        }
+
+        private static void AnalyzeDependencySymbol(SymbolAnalysisContext context, DependencyCopSettings settings)
+        {
+            Console.WriteLine(context.Symbol.Name);
         }
     }
 }
