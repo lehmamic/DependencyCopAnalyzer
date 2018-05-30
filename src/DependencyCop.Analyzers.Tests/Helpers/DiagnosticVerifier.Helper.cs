@@ -59,7 +59,9 @@ namespace DependencyCop.Analyzers.Tests.Helpers
             var diagnostics = new List<Diagnostic>();
             foreach (var project in projects)
             {
-                var compilationWithAnalyzers = project.GetCompilationAsync().Result.WithAnalyzers(ImmutableArray.Create(analyzer));
+                var compilationWithAnalyzers = project.GetCompilationAsync().Result
+                    .WithAnalyzers(ImmutableArray.Create(analyzer), project.AnalyzerOptions);
+
                 var diags = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result;
                 foreach (var diag in diags)
                 {

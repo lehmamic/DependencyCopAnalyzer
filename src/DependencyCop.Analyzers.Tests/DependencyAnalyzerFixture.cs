@@ -48,20 +48,9 @@ namespace Test.Foo.Pilot
             this.currentSettings = @"
 {
     ""rules"": [
-        { ""type"": ""allow"", ""from"": ""Test.Foo.Pilot"", ""to"": ""Test.Foo.Bar"" }
+        { ""type"": ""allow"", ""from"": ""*"", ""to"": ""*"" }
     ]
 }";
-
-            var expected = new DiagnosticResult
-            {
-                Id = DependencyAnalyzer.DiagnosticId,
-                Message = String.Format("Type name '{0}' contains lowercase letters", "TypeName"),
-                Severity = DiagnosticSeverity.Warning,
-                Locations =
-                    new[] {
-                            new DiagnosticResultLocation("Test0.cs", 10, 15)
-                        }
-            };
 
             VerifyCSharpDiagnostic(test);
         }
@@ -96,16 +85,18 @@ namespace Test.Foo.Pilot
             this.currentSettings = @"
 {
     ""rules"": [
+        { ""type"": ""allow"", ""from"": ""x"", ""to"": ""y"" }
     ]
 }";
+
             var expected = new DiagnosticResult
             {
                 Id = DependencyAnalyzer.DiagnosticId,
-                Message = String.Format("Type name '{0}' contains lowercase letters", "TypeName"),
+                Message = string.Format("The dependency between namespace '{0}' and '{1}' violates the dependency constraints.", "Test.Foo.Pilot", "Test.Foo.Bar"),
                 Severity = DiagnosticSeverity.Warning,
                 Locations =
                     new[] {
-                            new DiagnosticResultLocation("Test0.cs", 10, 15)
+                            new DiagnosticResultLocation("Test0.cs", 21, 26)
                         }
             };
 

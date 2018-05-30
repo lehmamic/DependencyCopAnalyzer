@@ -18,10 +18,10 @@ namespace DependencyCop.Analyzers
 
         // You can change these strings in the Resources.resx file. If you do not want your analyzer to be localize-able, you can use regular strings for Title and MessageFormat.
         // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Localizing%20Analyzers.md for more on localization
-        private static readonly string Title = "Type name contains lowercase letters";
-        private static readonly string MessageFormat = "Type name '{0}' contains lowercase letters";
-        private static readonly string Description = "Type names should be all uppercase";
-        private const string Category = "Naming";
+        private static readonly string Title = "Invalid Dependency";
+        private static readonly string MessageFormat = "The dependency between namespace '{0}' and '{1}' violates the dependency constraints.";
+        private static readonly string Description = "This issue is reported when a code element (namespace, type, member) mapped to a Layer references a code element mapped to another layer, but there is no allowed dependency between these layers in the dependency rule configuration. This is a dependency constraint violation.";
+        private const string Category = "Dependencies";
 
         private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
 
@@ -60,7 +60,17 @@ namespace DependencyCop.Analyzers
 
         private static void AnalyzeFieldSymbol(SymbolAnalysisContext context, DependencyCopSettings settings)
         {
-            Console.WriteLine(context.Symbol.Name);
+            var fieldSymbol = (IFieldSymbol)context.Symbol;
+            var validator = new DependencyValidator(settings);
+
+            var fromNamespace = fieldSymbol.ContainingNamespace.GetNamespace();
+            var toNamespace = fieldSymbol.Type.ContainingNamespace.GetNamespace();
+
+            if(!validator.IsAllowedDependency(fromNamespace, toNamespace))
+            {
+                var diagnostic = Diagnostic.Create(Rule, fieldSymbol.Locations[0], fromNamespace, toNamespace);
+                context.ReportDiagnostic(diagnostic);
+            }
         }
     }
 }
